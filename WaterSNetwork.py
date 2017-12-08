@@ -24,6 +24,8 @@ class WaterSNetwork:
     sigma = 0.005 # уточнить
     q_poz = 0.010
     t_poz = 10 * 60
+    g = 9.81
+    Re_kr = 2300
 
     def __init__(self,pop, q_shed, q_mft, yds, *args):
         self.pop = float(pop)
@@ -221,12 +223,13 @@ class WaterSNetwork:
         self.pointd = (point, max)
 
     def calc_watertower(self):
-        self.Q_daily_max = self.Q_max * 3600 * 24 + self.q_mft * 3600 * 24 + self.q_shed * 3600 * 24
+        self.Q_daily_max = self.Q_r['61'] * 24 * 3600 #self.q_daily_max + self.q_mft * 3600 * 24 + self.q_shed * 3600 * 24
         self.V_r = 0.052 * self.Q_daily_max
         self.V_pz = self.q_poz * self.t_poz
         self.V_b = self.V_r + self.V_pz
         self.H_b = self.pointd[1] - self.z[3]
         print(self.H_b)
+        print('v_b:', self.V_b)
 
     def get_fact_h_point(self):
         self.fact_h_p = {}
@@ -249,9 +252,45 @@ class WaterSNetwork:
     def get_Q_trn(self):
         self.Q_trn = (0.055 * self.Q_daily_max) / 3600
 
+    def getvsnagparam(self):
+        self.d['nag'] = math.sqrt((4 * self.Q_trn) / (math.pi * self.SPEED))
+        print('Диаметр равен:', self.d['nag'])
+        self.d['nag'] = float(input('Введите Диаметр по таблице:'))
+        self.d['vs'] = self.d['nag']
+        self.lvs = 0
+        self.lnag = abs(self.z[1]) + self.l[2] + abs(self.z[3]) + self.H_b
+        self.kinetic_V = 1.006e-6
+
+    def get_lmbda(self):
+        self.Revs = (self.SPEED * self.d['vs']) / self.kinetic_V
+        self.Renag = (self.SPEED * self.d['nag']) / self.kinetic_V
+        self.lmbdanag = self.calclmbda(self.Renag, self.d['nag'])
+        self.lmbdavs = self.calclmbda(self.Renag, self.d['nag']) #Тут исправить наверн
+
+    def Network_char(self):
+        self.A_kf = self.getA()
+
     def calc_h(self, l, q, d):
         res = (1.05 * 0.009 * (self.kt ** 0.25) * l * (q ** 2)) / (d ** 5.25)
         return res
+
+    def getA(self, lmdvs, lmdnag, lvs, lnag, dvs, dnag, msvs, msnag):
+        res = (8 / ((math.pi ** 2) * self.g)) * (lmdvs * (lvs / (dvs ** 5)) + (msvs / (dvs ** 4))
+                                                 + lmdnag * (lnag / (dnag ** 5)) + (msnag / (dnag ** 4)))
+        return res
+
+    def calclmbda(self, re, d, dl=0.005):
+        s1 = (10 * d) / dl
+        s2 = (500 * d) / dl
+        if re < self.Re_kr:
+            lmd = 63 / re
+        elif re <= s1:
+            lmd = 0.316 / (re ** (1 / 4))
+        elif re <= s2:
+            lmd = 0.11 * ((dl / d) + 68 / re) ** 0.25
+        elif re > s2:
+            lmd = 0.11 * (dl / d) ** 0.25
+        return lmd
 
     def my_summ(self, *args):
         k = 0
@@ -297,4 +336,3 @@ class WaterSNetwork:
         self.get_otv()
         #print(self.slossh)
         #print('Готово', self.y_h, self.x_h)
-#Проверка
