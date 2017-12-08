@@ -265,7 +265,7 @@ class WaterSNetwork:
         self.Revs = (self.SPEED * self.d['vs']) / self.kinetic_V
         self.Renag = (self.SPEED * self.d['nag']) / self.kinetic_V
         self.lmbdanag = self.calclmbda(self.Renag, self.d['nag'])
-        self.lmbdavs = self.calclmbda(self.Renag, self.d['nag']) #Тут исправить наверн
+        self.lmbdavs = self.calclmbda(self.Renag, self.d['nag']) #Тут исправить наверн Допишем проверку
 
     def Network_char(self):
         self.A_kf = self.getA()
