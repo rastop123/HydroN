@@ -297,3 +297,4 @@ class WaterSNetwork:
         self.get_otv()
         #print(self.slossh)
         #print('Готово', self.y_h, self.x_h)
+#Проверка
