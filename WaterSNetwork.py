@@ -26,6 +26,7 @@ class WaterSNetwork:
     t_poz = 10 * 60
     g = 9.81
     Re_kr = 2300
+    mszad = 0.15 # что то про задвижку
 
     def __init__(self,pop, q_shed, q_mft, yds, *args):
         self.pop = float(pop)
@@ -260,6 +261,8 @@ class WaterSNetwork:
         self.lvs = 0
         self.lnag = abs(self.z[1]) + self.l[2] + abs(self.z[3]) + self.H_b
         self.kinetic_V = 1.006e-6
+        self.msvs = 0.5
+        self.msnag = 1.32 + self.mszad + 1
 
     def get_lmbda(self):
         self.Revs = (self.SPEED * self.d['vs']) / self.kinetic_V
@@ -268,7 +271,20 @@ class WaterSNetwork:
         self.lmbdavs = self.calclmbda(self.Renag, self.d['nag']) #Тут исправить наверн Допишем проверку
 
     def Network_char(self):
-        self.A_kf = self.getA()
+        self.A_kf = self.getA(self.lmbdavs, self.lmbdanag, self.lvs, self.lnag, self.d['vs'],
+                              self.d['nag'], self.msvs, self.msnag)
+        self.H_potr = self.z[2] + self.H_b + self.A_kf * (self.Q_trn ** 2) # Это функция вместо Q_n Подставить Нужный Q
+
+    def work_point_nas(self):
+        self.S = (self.Q_trn * 1000) / self.yds
+        self.H_potrn = self.H_potr + self.S
+        print('Потребный напор насоса:', self.H_potrn)
+        print('При расходе:', self.Q_trn)
+        print('Подберите Насос, при условии что кпд будет наибольший, а так же расход будет соответствовать требуемому',
+              'а напор будет больше либо равен требуемому')
+        self.Qk = float(input('Расход:'))
+        self.Hk = float(input('Напор насоса:'))
+        
 
     def calc_h(self, l, q, d):
         res = (1.05 * 0.009 * (self.kt ** 0.25) * l * (q ** 2)) / (d ** 5.25)
