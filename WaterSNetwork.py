@@ -284,7 +284,7 @@ class WaterSNetwork:
               'а напор будет больше либо равен требуемому')
         self.Qk = float(input('Расход:'))
         self.Hk = float(input('Напор насоса:'))
-        
+
 
     def calc_h(self, l, q, d):
         res = (1.05 * 0.009 * (self.kt ** 0.25) * l * (q ** 2)) / (d ** 5.25)
